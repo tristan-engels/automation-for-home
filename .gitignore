@@ -1,0 +1,4 @@
+# Umgebungs­variablen
+.env
+venv/
+bot.log
