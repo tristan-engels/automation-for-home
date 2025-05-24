@@ -1,4 +1,4 @@
-# fetch_subjects_last3days.py
+# fetch_senders_last3days.py
 import os
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -30,22 +30,31 @@ with IMAPClient(HOST, ssl=True) as client:
     if not uids:
         exit(0)
 
-    # Betreffzeilen holen
-    subjects = []
+    # Sendername & Betreff holen
+    entries = []
     response = client.fetch(uids, ['ENVELOPE'])
     for uid, data in response.items():
-        envelope = data[b'ENVELOPE']
-        raw_subj = envelope.subject or b''
-        # raw_subj ist bytes, evtl. encodiert – daher dekodieren
-        decoded = decode_header(raw_subj.decode('utf-8', errors='ignore'))[0][0]
-        if isinstance(decoded, bytes):
-            try:
-                decoded = decoded.decode('utf-8')
-            except:
-                decoded = decoded.decode('latin-1', errors='replace')
-        subjects.append(decoded)
+        env = data[b'ENVELOPE']
 
-    # Liste ausgeben
-    print("Betreff:")
-    for i, subj in enumerate(subjects, 1):
-        print(f"{i}. {subj}")
+        # Betreff dekodieren
+        raw_subj = env.subject or b''
+        subj, enc = decode_header(raw_subj.decode('utf-8', errors='ignore'))[0]
+        if isinstance(subj, bytes):
+            subj = subj.decode(enc or 'utf-8', errors='replace')
+
+        # Absendername ermitteln (erstes from_-Element)
+        name = None
+        if env.from_:
+            addr = env.from_[0]
+            if addr.name:
+                name = addr.name.decode() if isinstance(addr.name, bytes) else addr.name
+
+        entries.append((name, subj))
+
+    # Ausgabe
+    print("\nUngelesene Mails der letzten 3 Tage:")
+    for i, (name, subj) in enumerate(entries, 1):
+        if name:
+            print(f"{i}. {name} – {subj}")
+        else:
+            print(f"{i}. {subj}")

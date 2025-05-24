@@ -7,3 +7,6 @@ eine .env datei erstellen mit den inhalten:
 OWM_API_KEY=0000
 CITY=Stadt, Kürzel vom Land
 SIGNAL_NUMBER=Telefon nummer
+
+VENV Erstellen und starten im Ordner mit:
+source venv/bin/activate

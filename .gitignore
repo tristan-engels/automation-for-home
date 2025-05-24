@@ -2,3 +2,5 @@
 .env
 venv/
 bot.log
+anhaenge/
+processed_uids.txt
